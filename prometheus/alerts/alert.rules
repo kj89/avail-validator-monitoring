@@ -1,0 +1,11 @@
+groups:
+  - name: Lava Provider Monitoring
+    rules:
+    - alert: IsFrozen
+      expr: provider_frozen == 1
+      for: 1m
+      labels:
+        severity: critical
+        service: lava-provider-monitoring
+      annotations:
+        description: 'Your `{{ $labels.chain }}` provider is frozen!'
