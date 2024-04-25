@@ -1,11 +1,11 @@
 groups:
-  - name: Lava Provider Monitoring
+  - name: alert_rules
     rules:
-    - alert: IsFrozen
-      expr: provider_frozen == 1
-      for: 1m
-      labels:
-        severity: critical
-        service: lava-provider-monitoring
-      annotations:
-        description: 'Your `{{ $labels.chain }}` provider is frozen!'
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance [{{ $labels.instance }}] down"
+          description: "[{{ $labels.instance }}] of job [{{ $labels.job }}] has been down for more than 5 minutes."

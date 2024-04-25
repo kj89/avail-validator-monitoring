@@ -48,7 +48,7 @@ echo "export $(xargs < $HOME/avail-validator-monitoring/config/.env)" > $HOME/.b
 source $HOME/.bash_profile
 ```
 
-# Adjust IP:PORT to match lava provider metrics endpoint in prometheus config file
+# Adjust IP:PORT to match avail validator metrics endpoint in prometheus config file
 ```bash
 vim $HOME/avail-validator-monitoring/prometheus/prometheus.yml
 ```
@@ -65,53 +65,44 @@ ports used:
 - `9093` (alertmanager)
 - `9999` (grafana)
 
-# Install lava-exporter
+![image](https://github.com/notional-labs/subnode/assets/50621007/b0da0a66-911c-421f-8efb-325495c937d2)
+
+
+# (OPTIONAL) Install node exporter on a validator host
 
 ## Download binaries
 ```bash
-sudo curl -Ls https://github.com/MELLIFERA-Labs/lava-exporter/releases/download/v1.0.0/lava-exporter-linux-v1.0.0-amd64 > /usr/local/bin/lava-exporter
-sudo chmod +x /usr/local/bin/lava-exporter
-```
+wget https://github.com/prometheus/node_exporter/releases/download/v1.8.0/node_exporter-1.8.0.linux-amd64.tar.gz
+tar xvfz node_exporter-*.*-amd64.tar.gz
+sudo mv node_exporter-*.*-amd64/node_exporter /usr/local/bin/
+rm node_exporter-* -rf
 
-## Set config
-```bash
-mkdir -p $HOME/lava-exporter
-sudo tee $HOME/lava-exporter/config.toml > /dev/null << EOF
-# array of lava rest api endpoints. Will be used next URL if previous is down
-lava_rest_api = ['http://127.0.0.1:14417']
-# Your chains to track for your provider.
-# Name should be match with the chainID from this list:
-# https://rest-public-rpc.lavanet.xyz/lavanet/lava/spec/show_all_chains
-# Otherwise provider_frozen always will be 0
-chains = ['EVMOS', 'EVMOST', 'AXELAR', 'AXELART', 'AGR', 'AGRT', 'NEAR', 'NEART']
-# Your provider address
-lava_provider_address = 'lava@13j4r22xd0tegzagwhx39ptzxpzlvgyv7ykgrvw'
-EOF
+sudo useradd -rs /bin/false node_exporter
 ```
 
 ## Create service
 ```bash
-sudo tee /etc/systemd/system/lava-exporter.service > /dev/null << EOF
+sudo tee <<EOF >/dev/null /etc/systemd/system/node_exporter.service
 [Unit]
-Description=Lava Exporter
-After=network-online.target
+Description=Node Exporter
+After=network.target
 
 [Service]
-User=$USER
-ExecStart=/usr/local/bin/lava-exporter start --config $HOME/lava-exporter/config.toml --port 14440 
-Restart=on-failure
-RestartSec=3
-LimitNOFILE=65535
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-systemctl enable lava-exporter
+systemctl enable node_exporter
 systemctl daemon-reload
 ```
 
 ## Start service and check logs
 ```bash
-systemctl restart lava-exporter && journalctl -fu lava-exporter -o cat
+systemctl restart node_exporter && journalctl -fu node_exporter -o cat
 ```
+
