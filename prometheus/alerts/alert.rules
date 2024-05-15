@@ -1,6 +1,7 @@
 groups:
   - name: alert_rules
     rules:
+	  # Alert for any instance that is unreachable for >5 minutes.
       - alert: InstanceDown
         expr: up == 0
         for: 5m
@@ -9,3 +10,11 @@ groups:
         annotations:
           summary: "Instance [{{ $labels.instance }}] down"
           description: "[{{ $labels.instance }}] of job [{{ $labels.job }}] has been down for more than 5 minutes."
+
+      # Alert for any instance that has a median request latency >1s.
+      - alert: StoppedSyncing
+        expr: changes(substrate_block_height{status="best"}[1m]) = 0
+        for: 1m
+        annotations:
+          summary: "Block synchronization stopped at {{ $labels.instance }}"
+          description: "{{ $labels.instance }}: There was no new blocks for more than 5 minutes."
