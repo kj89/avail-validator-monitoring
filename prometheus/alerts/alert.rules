@@ -12,21 +12,21 @@ groups:
           description: "[{{ $labels.instance }}] of job [{{ $labels.job }}] has been down for more than 1 minute."
 
       # Alert if block height is not increasing for for more than 1 minute.
-      - alert: StoppedSyncing
-        expr: changes(substrate_block_height{status="finalized"}[1m]) == 0
+      - alert: ChainStopped
+        expr: changes(substrate_block_height{status="finalized",instance=~"$instance.*"}[1m]) == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "Block synchronization stopped: {{ $labels.instance }}"
-          description: "{{ $labels.instance }}: There was no new blocks for more than 1 minute."
+          summary: "Block production stopped: {{ $labels.instance }}"
+          description: "There was no new blocks for more than 1 minute."
 
       # Alert if node is out of sync more than 2 blocks.
       - alert: OutOfSync
-        expr: sum(substrate_block_height{status="best"}) - sum(substrate_block_height{status="finalized"}) > 2
+        expr: sum(substrate_block_height{status="best",instance=~"$instance.*"}) - sum(substrate_block_height{status="finalized",instance=~"$instance.*"}) > 2
         for: 1m
         labels:
           severity: critical
         annotations:
           summary: "Out of sync: {{ $labels.instance }}"
-          description: "{{ $labels.instance }}: Node is out of sync for more than 1 minute."
+          description: "Node is out of sync for more than 1 minute."

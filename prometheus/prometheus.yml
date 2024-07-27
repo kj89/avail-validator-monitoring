@@ -22,5 +22,18 @@ scrape_configs:
   - job_name: substrate_node
     metrics_path: /metrics
     static_configs:
-      - targets:
-          - IP:9615   # default substrate node metrics port, adjust if necessary.
+      - targets: ['<TESTNET-IP>:9615']
+        labels:
+          instance: 'testnet'
+      - targets: ['<MAINNET-IP>:9615']
+        labels:
+          instance: 'mainnet'
+  - job_name: node
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['<TESTNET-IP>:9100']
+        labels:
+          instance: 'testnet'
+      - targets: ['<MAINNET-IP>:9100']
+        labels:
+          instance: 'mainnet'
